@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register Admin - Rotaract</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #003566);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      width: 400px;
+      text-align: center;
+    }
+    h2 {
+      color: #003566;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #222;
+      text-align: left;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      border-color: #0077b6;
+      outline: none;
+      box-shadow: 0 0 6px rgba(0,119,182,0.4);
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 20px;
+      background: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #023e8a;
+    }
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+      color: green;
+    }
+    .error {
+      margin-top: 15px;
+      font-size: 14px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Register New Admin</h2>
+    <form id="registerForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="admin">Admin</option>
+      </select>
+
+      <button type="submit">Register</button>
+      <p class="message" id="successMsg"></p>
+      <p class="error" id="errorMsg"></p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    const successMsg = document.getElementById("successMsg");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      successMsg.textContent = "";
+      errorMsg.textContent = "";
+
+      const data = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        role: "admin"
+      };
+
+      const token = localStorage.getItem("token");
+
+      try {
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (result.message && result.message.includes("successfully")) {
+          successMsg.textContent = result.message;
+          form.reset();
+        } else {
+          errorMsg.textContent = result.message || "Registration failed.";
+        }
+      } catch (error) {
+        errorMsg.textContent = "Error registering admin. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>

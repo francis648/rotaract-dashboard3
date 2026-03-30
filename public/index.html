@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Ensures proper scaling on mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotaract Charter Member Form</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #001f3f, #003566);
+      color: #fff;
+    }
+    header {
+      background: #003566;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 4px solid #0077b6;
+    }
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+    .form-container {
+      max-width: 700px;
+      width: 90%;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #003566;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #222;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      border-color: #0077b6;
+      outline: none;
+      box-shadow: 0 0 6px rgba(0,119,182,0.4);
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 20px;
+      background: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #023e8a;
+    }
+    footer {
+      background: #003566;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      border-top: 4px solid #0077b6;
+    }
+    footer p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      body { font-size: 14px; }
+      h2 { font-size: 18px; }
+      .form-container { padding: 20px; }
+      button { font-size: 14px; padding: 10px; }
+    }
+    .error { color: red; margin-top: 10px; }
+    #successModal {
+      display: none;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="rotaract.webp" alt="Rotaract Logo">
+  </header>
+
+  <div class="form-container">
+    <h2>Rotaract Charter Member Registration</h2>
+    <form id="memberForm">
+      <!-- Personal Info -->
+      <label for="title">Title</label>
+      <select name="title" id="title">
+        <option>Mr.</option>
+        <option>Ms.</option>
+        <option>Dr.</option>
+        <option>Rev.</option>
+      </select>
+
+      <label for="first_name">First Name</label>
+      <input type="text" name="first_name" id="first_name" required>
+
+      <label for="middle_name">Middle Name</label>
+      <input type="text" name="middle_name" id="middle_name">
+
+      <label for="last_name">Last Name</label>
+      <input type="text" name="last_name" id="last_name" required>
+
+      <label for="gender">Gender</label>
+      <select name="gender" id="gender">
+        <option>Male</option>
+        <option>Female</option>
+        <option>Prefer to self-describe</option>
+        <option>Prefer not to say</option>
+      </select>
+
+      <label for="dob">Date of Birth</label>
+      <input type="date" name="dob" id="dob" required>
+
+      <!-- Rotary Info -->
+      <label for="club_name">Club Name</label>
+      <input type="text" name="club_name" id="club_name">
+
+      <!-- Contact Info -->
+      <label for="email">Email Address</label>
+      <input type="email" name="email" id="email" required>
+
+      <label for="phone">Preferred Phone</label>
+      <input type="tel" name="phone" id="phone" required>
+
+      <label for="alt_phone">Alternate Phone</label>
+      <input type="tel" name="alt_phone" id="alt_phone">
+
+      <!-- Address -->
+      <label for="city">City</label>
+      <input type="text" name="city" id="city" required>
+
+      <label for="state">State/Province</label>
+      <input type="text" name="state" id="state">
+
+      <label for="postal_code">Postal Code</label>
+      <input type="text" name="postal_code" id="postal_code">
+
+      <label for="country">Country</label>
+      <input type="text" name="country" id="country" required>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <p class="error" id="errorMsg"></p>
+    <div id="successModal">
+      <p>Member submitted successfully!</p>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 Rotaract International</p>
+    <p>In partnership with Rotary International</p>
+    <p>Contact: info@rotaract.org | +1 (312) 555-1234</p>
+    <p>Created by Rotaract Developer Francis Mukuna <br> Contact: mukunafrancis101@gmail.com | +254 116275256</p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("memberForm");
+      const modal = document.getElementById("successModal");
+      const errorMsg = document.getElementById("errorMsg");
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch("/api/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          if (result.message && result.message.includes("successfully")) {
+            modal.style.display = "block";
+            setTimeout(() => {
+              modal.style.display = "none";
+              form.reset();
+              window.location.href = "admin.html";
+            }, 4000);
+          } else {
+            errorMsg.textContent = result.message || "Submission failed.";
+          }
+        } catch (error) {
+          console.error("Error submitting form:", error);
+          errorMsg.textContent = "Error submitting form. Please try again.";
+        }
+      });
+
+      window.closeModal = function () {
+        modal.style.display = "none";
+        form.reset();
+      };
+    });
+  </script>
+</body>
+</html>

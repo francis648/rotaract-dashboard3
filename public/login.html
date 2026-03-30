@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login - Rotaract</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #001f3f, #003566);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      color: #003566;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+      color: #222;
+      text-align: left;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus {
+      border-color: #0077b6;
+      outline: none;
+      box-shadow: 0 0 6px rgba(0,119,182,0.4);
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 20px;
+      background: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #023e8a;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit">Login</button>
+      <p class="error" id="errorMsg"></p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const data = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json(); 
+        // Expect backend to return { message, role, token }
+
+        if (result.message && result.message.includes("successful")) {
+          // Save role + token in localStorage
+          localStorage.setItem("userRole", result.role);
+          localStorage.setItem("token", result.token);
+
+          window.location.href = "admin.html"; // redirect to dashboard
+        } else {
+          errorMsg.textContent = result.message || "Invalid credentials.";
+        }
+      } catch (error) {
+        errorMsg.textContent = "Login failed. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Rotaract Members</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+    h2 { margin-bottom: 10px; color: #003566; }
+    .controls { margin-bottom: 15px; }
+    input, select, button { margin-right: 10px; padding: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #0077b6; color: white; }
+    tr:nth-child(even) { background: #f1f1f1; }
+    .logout { float: right; background: #dc3545; color: #fff; border: none; padding: 8px 12px; cursor: pointer; }
+    .logout:hover { background: #a71d2a; }
+    .pagination { margin-top: 20px; text-align: center; }
+    .pagination button { margin: 0 5px; padding: 6px 12px; }
+    .superadmin-only { background: #28a745; color: #fff; border: none; padding: 8px 12px; cursor: pointer; }
+    .superadmin-only:hover { background: #1e7e34; }
+    .delete-btn { background: #dc3545; color: #fff; border: none; padding: 6px 10px; cursor: pointer; }
+    .delete-btn:hover { background: #a71d2a; }
+  </style>
+</head>
+<body>
+  <h2>Charter Members Dashboard</h2>
+  <button class="logout" onclick="logout()">Logout</button>
+
+  <!-- Controls -->
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search by name or city">
+    <select id="genderFilter">
+      <option value="">All Genders</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Prefer not to say">Prefer not to say</option>
+    </select>
+    <button onclick="loadMembers()">Refresh</button>
+    <button id="csvBtn">Download CSV</button>
+    <button id="excelBtn">Download Excel</button>
+    <!-- Register Admin button (hidden unless superadmin) -->
+    <button id="registerAdminBtn" class="superadmin-only" style="display:none;" onclick="window.location.href='register.html'">
+      Register Admin
+    </button>
+  </div>
+
+  <!-- Members Table -->
+  <table id="membersTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Gender</th>
+        <th>DOB</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>City</th>
+        <th>Country</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button onclick="prevPage()">Prev</button>
+    <span id="pageInfo"></span>
+    <button onclick="nextPage()">Next</button>
+  </div>
+
+  <script>
+    let allMembers = [];
+    let currentPage = 1;
+    const rowsPerPage = 20;
+    const API_URL = "/api";
+    const token = localStorage.getItem("token");
+    let userRole = localStorage.getItem("userRole"); // stored at login
+
+    async function loadMembers() {
+      try {
+        const response = await fetch(`${API_URL}/members`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+          alert("Unauthorized. Please log in.");
+          window.location.href = "login.html";
+          return;
+        }
+        allMembers = await response.json();
+        applyFilters();
+      } catch (error) {
+        console.error("Error loading members:", error);
+      }
+    }
+
+    function renderTable(members) {
+      const tbody = document.querySelector("#membersTable tbody");
+      tbody.innerHTML = "";
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedMembers = members.slice(start, end);
+
+      paginatedMembers.forEach(member => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${member.id}</td>
+          <td>${member.title || ""}</td>
+          <td>${member.first_name}</td>
+          <td>${member.last_name}</td>
+          <td>${member.gender}</td>
+          <td>${member.dob}</td>
+          <td>${member.email}</td>
+          <td>${member.phone}</td>
+          <td>${member.city}</td>
+          <td>${member.country}</td>
+          <td>
+            ${userRole === "admin" || userRole === "superadmin" 
+              ? `<button class="delete-btn" onclick="deleteMember(${member.id})">Delete</button>` 
+              : ""}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("pageInfo").textContent =
+        `Page ${currentPage} of ${Math.ceil(members.length / rowsPerPage)}`;
+    }
+
+    // Search & Filter
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("genderFilter").addEventListener("change", applyFilters);
+
+    function applyFilters() {
+      const searchValue = document.getElementById("searchInput").value.toLowerCase();
+      const genderValue = document.getElementById("genderFilter").value;
+
+      const filtered = allMembers.filter(member => {
+        const matchesSearch =
+          member.first_name.toLowerCase().includes(searchValue) ||
+          member.last_name.toLowerCase().includes(searchValue) ||
+          member.city.toLowerCase().includes(searchValue);
+
+        const matchesGender = genderValue ? member.gender === genderValue : true;
+
+        return matchesSearch && matchesGender;
+      });
+
+      renderTable(filtered);
+    }
+
+    // Pagination controls
+    function nextPage() {
+      if (currentPage < Math.ceil(allMembers.length / rowsPerPage)) {
+        currentPage++;
+        applyFilters();
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        applyFilters();
+      }
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+      alert("Logged out successfully.");
+      window.location.href = "login.html";
+    }
+
+    // Delete member
+    async function deleteMember(id) {
+      if (!confirm("Are you sure you want to delete this member?")) return;
+      try {
+        const response = await fetch(`${API_URL}/deleteMember?id=${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await response.json();
+        alert(result.message);
+        loadMembers();
+      } catch (error) {
+        console.error("Error deleting member:", error);
+        alert("Failed to delete member.");
+      }
+    }
+
+    // Role-based UI
+    function checkRole() {
+      if (userRole === "superadmin") {
+        document.getElementById("registerAdminBtn").style.display = "inline-block";
+      }
+    }
+
+    // Export buttons
+    document.getElementById("csvBtn").onclick = () => {
+      window.location.href = `${API_URL}/exportCsv?token=${token}`;
+    };
+    document.getElementById("excelBtn").onclick = () => {
+      window.location.href = `${API_URL}/exportExcel?token=${token}`;
+    };
+
+    // Initial load
+    checkRole();
+    loadMembers();
+  </script>
+</body>
+</html>
