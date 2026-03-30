@@ -32,7 +32,11 @@ export default async function handler(req, res) {
 
     res.status(200).json({ message: "Member submitted successfully!" });
   } catch (err) {
-    console.error("Error in submit.js:", err);
-    res.status(500).json({ message: "Error submitting member." });
+    // ✅ Log and return the actual error message
+    console.error("SQL Error in submit.js:", err.message);
+    res.status(500).json({ 
+      message: "Error submitting member.", 
+      error: err.message 
+    });
   }
 }
