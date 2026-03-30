@@ -1,12 +1,13 @@
 import { getDB, verifyToken } from "./_db.js";
 
 export default async function handler(req, res) {
+  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // ✅ Verify JWT
+    // ✅ Verify JWT (admin/superadmin only)
     verifyToken(req);
 
     // ✅ Parse body
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
     const db = await getDB();
     await db.execute(sql, values);
 
-    res.json({ message: "Member submitted successfully!" });
+    res.status(200).json({ message: "Member submitted successfully!" });
   } catch (err) {
     console.error("Error in submit.js:", err);
     res.status(500).json({ message: "Error submitting member." });
