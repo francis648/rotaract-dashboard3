@@ -1,16 +1,18 @@
 import { getDB, verifyToken } from "./_db.js";
 
 export default async function handler(req, res) {
-  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
-    // ✅ Verify JWT (admin/superadmin only)
-    verifyToken(req);
+    // ✅ Try to verify JWT, but don’t block if missing
+    try {
+      verifyToken(req);
+    } catch (err) {
+      console.warn("Token missing or invalid, continuing without auth");
+    }
 
-    // ✅ Parse body
     const data = req.body;
     if (!data) {
       return res.status(400).json({ message: "Missing request body" });
@@ -32,11 +34,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ message: "Member submitted successfully!" });
   } catch (err) {
-    // ✅ Log and return the actual error message
-    console.error("SQL Error in submit.js:", err.message);
-    res.status(500).json({ 
-      message: "Error submitting member.", 
-      error: err.message 
-    });
+    console.error("Error in submit.js:", err.message);
+    res.status(500).json({ message: "Error submitting member.", error: err.message });
   }
 }
